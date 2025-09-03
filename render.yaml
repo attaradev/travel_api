@@ -1,0 +1,98 @@
+services:
+  - type: web
+    name: travel-api-web
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: |
+      python manage.py migrate --noinput && \
+      gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 3 --timeout 60
+    healthCheckPath: /swagger/
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "0"
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: travel-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        # paste CloudAMQP amqps://... after creating it
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        value: "rpc://"
+      - key: PUBLIC_ORIGIN
+        value: "https://RENDER_DOMAIN_REPLACEME.onrender.com"
+      # Email (adjust/remove as needed)
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.smtp.EmailBackend
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_PORT
+        value: "587"
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: EMAIL_USE_TLS
+        value: "1"
+      - key: DEFAULT_FROM_EMAIL
+        value: "no-reply@your-domain.com"
+
+  - type: worker
+    name: travel-api-celery
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A core worker -l info --concurrency=2
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "0"
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: travel-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        value: "rpc://"
+
+  - type: worker
+    name: travel-api-beat
+    runtime: python
+    plan: starter
+    region: frankfurt
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A core beat -l info
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        sync: false
+      - key: DEBUG
+        value: "0"
+      - key: DJANGO_SETTINGS_MODULE
+        value: core.settings
+      - key: DATABASE_URL
+        fromDatabase:
+          name: travel-db
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        sync: false
+      - key: CELERY_RESULT_BACKEND
+        value: "rpc://"
+
+databases:
+  - name: travel-db
+    plan: starter
+    databaseName: travel
+    user: travel

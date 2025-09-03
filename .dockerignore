@@ -1,0 +1,39 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+# Django
+/staticfiles/
+media/
+db.sqlite3
+
+# Logs / caches
+*.log
+.cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git / VCS
+.git/
+.gitignore
+.gitattributes
+
+# IDE/editor
+.vscode/
+.idea/
+*.iml
+
+# Docker context junk
+.dockerignore
+compose.override.yml
+.env
+.env.*
