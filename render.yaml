@@ -28,8 +28,8 @@ services:
       - key: CELERY_RESULT_BACKEND
         value: "rpc://"
       - key: PUBLIC_ORIGIN
-        value: "https://RENDER_DOMAIN_REPLACEME.onrender.com"
-      # Email (adjust/remove as needed)
+        value: "https://travel-api-qnwc.onrender.com"
+      # Email (set these in dashboard or remove if unused)
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.smtp.EmailBackend
       - key: EMAIL_HOST
